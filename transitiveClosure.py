@@ -11,7 +11,8 @@ def edgeToBooleanFormula(i, j):
     xBin = '{0:05b}'.format(i)
     yBin = '{0:05b}'.format(j)
 
-    # iterate over the bits in binary i to formulate the xFormula
+    # iterate over the bits in binary i to create xFormula
+    # produces "x[i] & ".. to match pyEDA style expression and indexed vars
     for digit in xBin:
         
         if int(digit) == 0:
@@ -38,7 +39,7 @@ def edgeToBooleanFormula(i, j):
     xFormula = xFormula[:-3]
     yFormula = yFormula[:-3]
 
-    # form a new Formula with both x and y expressions
+    # create a new Formula with both x and y expressions
     E_i_j = f"({xFormula}) & ({yFormula})"
 
 
@@ -136,7 +137,7 @@ if __name__ == '__main__':
 
     # for all i, j ∈ S, node i can reach node j in one or more steps in G
     # first we negate R*
-    print("Computing the transitive closure, R*..")
+    print("Negating the transitive closure, R*..")
     negRStar = ~RStar
     print("Done")
 
@@ -151,6 +152,6 @@ if __name__ == '__main__':
     print("Done")
 
     # Finally, assert the result
-    print(f"\n\nfor all i, j ∈ S, can node i can reach node j in one or more steps in G?: {result.equivalent(True)}")
+    print(f"\nfor all i, j ∈ S, can node i can reach node j in one or more steps in G?: {result.equivalent(True)}\n")
 
 
