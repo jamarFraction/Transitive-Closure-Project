@@ -1,3 +1,5 @@
+# Jamar Fraction
+# CPTS 350
 
 import pyeda.inter as pyeda
 
@@ -13,9 +15,9 @@ def edgeToBooleanFormula(i, j):
     for digit in xBin:
         
         if int(digit) == 0:
-            xFormula += f"~x{index} & "
+            xFormula += f"~x[{index}] & "
         elif int(digit) == 1:
-            xFormula += f"x{index} & "
+            xFormula += f"x[{index}] & "
         
         index += 1    
 
@@ -26,9 +28,9 @@ def edgeToBooleanFormula(i, j):
     for digit in yBin:
         
         if int(digit) == 0:
-            yFormula += f"~y{index} & "
+            yFormula += f"~y[{index}] & "
         elif int(digit) == 1:
-            yFormula += f"y{index} & "
+            yFormula += f"y[{index}] & "
         
         index += 1  
     
@@ -59,15 +61,15 @@ def joinEdgeFormulaList(edgeFormulaList):
 
 def computeTransitiveClosure(R):
     
-    x0, x1, x2, x3, x4 = map(pyeda.bddvar, ["x0", "x1", "x2", "x3", "x4"])
-    y0, y1, y2, y3, y4 = map(pyeda.bddvar, ["y0", "y1", "y2", "y3", "y4"])
-    z0, z1, z2, z3, z4 = map(pyeda.bddvar, ["z0", "z1", "z2", "z3", "z4"])
+    x0, x1, x2, x3, x4 = pyeda.bddvars('x', 5)
+    y0, y1, y2, y3, y4 = pyeda.bddvars('y', 5)
+    z0, z1, z2, z3, z4 = pyeda.bddvars('z', 5)
     
     # Transitive closure alg
     H = R
     HPrime = None
 
-    while not(H.equivalent(HPrime)):
+    while True:
 
         HPrime = H
         
@@ -86,44 +88,69 @@ def computeTransitiveClosure(R):
         # apply smoothing over all z BDD Vars to rid them from the graph
         H = H.smoothing((z0, z1, z2, z3, z4))
 
+        if H.equivalent(HPrime):
+            break
+
     return H
-
-
 
 # MAIN, not gucci
 if __name__ == '__main__':
+
     
     edgeFormulaList = []
-    
-    # Graph G:
-    # for all i, j ∈ S,
-    # there is an edge from node i to node j iff (i + 3)%32 = j%32
-    # OR
-    # (i + 7)%32 = j%32.
-    
-    # 0-31 range for 32 nodes
+
+    x0, x1, x2, x3, x4 = pyeda.bddvars('x', 5)
+    y0, y1, y2, y3, y4 = pyeda.bddvars('y', 5)
+
+    print("Building the graph, G..")
+    # for (i, j) in G:
     for i in range(0, 32):
 
-        for j in range(0, 32):
+        for j in range(0,32):
 
-            if (((i+3) % 32) == j % 32) | (((i+3) % 32) == j % 32):
+            if (((i+3) % 32) == (j % 32)) | (((i+7) % 32) == (j % 32)):
 
                 # send the edge to to formula creation function
                 newFormula = edgeToBooleanFormula(i, j)
-                
+
                 # add the formula to the list
                 edgeFormulaList.append(newFormula)
+    print("Done")
 
-
+    
     # Create a big boolean expression, F, for the entire graph G
+    print("Building the boolean expression, F, from the graph G..")
     F = joinEdgeFormulaList(edgeFormulaList)
+    print("Done")
 
     # Convert F into BDD: R 
+    print("Converting F to a BDD, R..")
     R = pyeda.expr2bdd(F)
+    print("Done")
 
-    # Compute the transitive closure R* 
+    # Compute the transitive closure R*
+    print("Computing the transitive closure, R*..")
     RStar = computeTransitiveClosure(R) 
+    print("Done")
+
 
     # for all i, j ∈ S, node i can reach node j in one or more steps in G
-    print("stop")
+    # first we negate R*
+    print("Computing the transitive closure, R*..")
+    negRStar = ~RStar
+    print("Done")
+
+    # Then apply smoothing over all BDD vars
+    print("Smoothing over all x[0]..x[4] and y[0]..y[4]")
+    result = negRStar.smoothing((x0, x1, x2, x3, x4, y0, y1, y2, y3, y4))
+    print("Done")
+
+    # take the negation of the result
+    print("Negating the result..")
+    result = ~result
+    print("Done")
+
+    # Finally, assert the result
+    print(f"\n\nfor all i, j ∈ S, can node i can reach node j in one or more steps in G?: {result.equivalent(True)}")
+
 
