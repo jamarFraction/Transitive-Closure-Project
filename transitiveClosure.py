@@ -33,13 +33,30 @@ def edgeToBooleanFormula(i, j):
         index += 1  
     
     # pop the last 3 chars from the expressions
-    xFormula = pyeda.expr(xFormula[:-3])
-    yFormula = pyeda.expr(yFormula[:-3])
+    xFormula = xFormula[:-3]
+    yFormula = yFormula[:-3]
 
     # form a new Formula with both x and y expressions
-    E_i_j = pyeda.expr(pyeda.And(xFormula, yFormula))
+    E_i_j = f"({xFormula}) & ({yFormula})"
+
 
     return E_i_j
+
+def joinEdgeFormulaList(edgeFormulaList):
+
+    jointFormula = ""
+
+    # Add the OR between each formula
+    for edgeFormula in edgeFormulaList:
+        
+        jointFormula += f"({edgeFormula}) | "
+
+    # Convert the formula string to a pyeda expression
+    # chopping off the extra OR for formatting
+    jointFormula = pyeda.expr(jointFormula[:-3])
+
+    return jointFormula
+
 
 
 
@@ -66,6 +83,10 @@ if __name__ == '__main__':
                 edgeFormulaList.append(newFormula)
 
 
-    # Create a big boolean formula, F, for the entire graph G
+    # Create a big boolean expression, F, for the entire graph G
+    F = joinEdgeFormulaList(edgeFormulaList)
+
+    # Convert F into BDD: R 
+    R = pyeda.expr2bdd(F)
     
           
