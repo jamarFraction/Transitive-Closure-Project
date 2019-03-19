@@ -57,6 +57,36 @@ def joinEdgeFormulaList(edgeFormulaList):
 
     return jointFormula
 
+def computeTransitiveClosure(R):
+    
+    x0, x1, x2, x3, x4 = map(pyeda.bddvar, ["x0", "x1", "x2", "x3", "x4"])
+    y0, y1, y2, y3, y4 = map(pyeda.bddvar, ["y0", "y1", "y2", "y3", "y4"])
+    z0, z1, z2, z3, z4 = map(pyeda.bddvar, ["z0", "z1", "z2", "z3", "z4"])
+    
+    # Transitive closure alg
+    H = R
+    HPrime = None
+
+    while not(H.equivalent(HPrime)):
+
+        HPrime = H
+        
+        # H
+        ff1 = H.compose({y0:z0, y1:z1, y2:z2, y3:z3, y4:z4 })
+
+        # R
+        ff2 = R.compose({x0:z0, x1:z1, x2:z2, x3:z3, x4:z4 }) 
+
+        # H x R
+        ff3 = ff1 & ff2
+
+        # H = H v (H x R)
+        H = HPrime | ff3
+
+        # apply smoothing over all z BDD Vars to rid them from the graph
+        H = H.smoothing((z0, z1, z2, z3, z4))
+
+    return H
 
 
 
@@ -88,5 +118,10 @@ if __name__ == '__main__':
 
     # Convert F into BDD: R 
     R = pyeda.expr2bdd(F)
-    
-          
+
+    # Compute the transitive closure R* 
+    RStar = computeTransitiveClosure(R) 
+
+    # for all i, j ∈ S, node i can reach node j in one or more steps in G
+    print("stop")
+
