@@ -100,9 +100,11 @@ if __name__ == '__main__':
     # there is an edge from node i to node j iff (i + 3)%32 = j%32
     # OR
     # (i + 7)%32 = j%32.
-    for i in range(0, 31):
+    
+    # 0-31 range for 32 nodes
+    for i in range(0, 32):
 
-        for j in range(0, 31):
+        for j in range(0, 32):
 
             if (((i+3) % 32) == j % 32) | (((i+3) % 32) == j % 32):
 
